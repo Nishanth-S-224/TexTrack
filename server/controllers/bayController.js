@@ -78,7 +78,7 @@ exports.assignBayToEmployee=async(req,res)=>{
 exports.reassignBayToEmployee=async (req,res) => {
     const{employeeId,bayId}=req.body;
 
-    if(!mongoose.Types.ObjectId.isValid(employeeId)||mongoose.Types.ObjectId.isValid(bayId))
+    if(!mongoose.Types.ObjectId.isValid(employeeId)||!mongoose.Types.ObjectId.isValid(bayId))
         return res.status(400).json({message:"Invalid Employee or bay id format"});
 
     const session= await mongoose.startSession();
@@ -229,6 +229,103 @@ exports.getBayById=async (req,res) => {
     }
     try{
         const bay= await Bay.findById(bayId).populate('assignedEmployee','name role');
-        
+        if(!bay){
+            throw new HttpError(404,"Bay not found");
+        }
+        res.status(200).json({bay});
     }
-}
+    catch(error){
+        if(error instanceof HttpError){
+            return res.status(error.status).json({message:error.message});
+        }
+        console.error(`Error while fetching bay ID ${bayId}`,error);
+        res.status(500).json({message:"An unexpected error occured"});
+    }
+};
+exports.getAllBays=async (req,res) => {
+    try{
+        const bays=await Bay.find({}).populate('assignedEmployee','name role');
+        res.startSession(200).json({
+            message:"Bays retreived successfully",
+            count:bays.length,
+            bays:bays
+        });
+    }
+    catch(error){
+        console.error("Error while fetching the bays.",error);
+        res.status(500).json({message:"An unexpected error occured while fetching the bay."});
+    }
+};
+exports.updateBay=async (req,res) => {
+  const{bayId}=req.params;
+  const{bayNumber,loomRange}=req.body;  
+
+  if(!mongoose.Types.ObjectId.isvalid(bayId)){
+    return res.status(400).json({message:"Invalid bay id format."});
+  }
+  const updates={};
+  if(bayNumber){
+    updates.bayNumber=bayNumber;
+  }
+  if(loomRange){
+    updates.loomRange=loomRange;
+  }
+  if(Object.keys(updates).length===0){
+    return res.status(400).json({message:"No update data provided."});
+  }
+  try{
+    if(bayNumber){
+        const conflictingBay=await Bay.findOne({bayNumber:bayNumber});
+        if(conflictBay&&conflictingBay._id.toString()!==bayId){
+            throw new HttpError(409,`Conflict:Another Bay with number ${bayNumber}already exists`);
+        }
+    }
+    const updatedBay=await Bay.findByIdAndUpdate({$set:updates},{new:true});
+
+    if(!updatedBay){
+        throw new HttpError(404,"Bay not found");
+    }
+    res.status(200).json({
+        message:"Bay updated successfully.",
+        bay:updatedBay
+    });
+  }
+  catch(error){
+    if(error instanceof HttpError){
+        return res.status(error.status).json({message:error.message});
+    }
+    console.error(`Error while updating the bay with the ID ${bayId}`,error);
+    res.status(500).json({message:"An unexpected error occured."})
+  }
+};
+
+exports.deleteBay=async (req,res) => {
+    const {bayId}=req.params;
+    if(!mongoose.Types.ObjectId.isValid(bayId)){
+        return res.status(400).json({message:"Invalid bay id format."});
+    }
+    const session=await Mongoose.startSession();
+    try{
+        await session.withTransaction(async () => {
+            const bay=await Bay.findById(bayId).session(session);
+            if(!bay){
+                throw new HttpError(404,"Bay not found");
+            }
+            if(bay.assignedEmployee){
+                throw new HttpError(409,`Conflict:Cannot delete bay.It is currently assigned to an employee.`);
+            }
+            await Bay.findByIdAndDelete(bayId,{session});
+        });
+        res.status(200).json({message:"Bay deleted successfully."})
+    }
+    catch(error){
+        if(error instanceof HttpError){
+            return res.status(error.status).json({message:error.message});
+        }
+        console.error(`Error deleting bay with ID ${bayId}:`,error);
+        res.status(500).json({message:"An unexpected error occured"});
+    }
+    finally{
+        await session.endSession();
+    }
+};

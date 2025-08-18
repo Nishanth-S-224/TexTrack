@@ -1,23 +1,19 @@
-const express=require('express');
-const cors=require('cors');
-const dotenv=require("dotenv");
-const connectDB=require("./db");
+const express = require("express");
+const cors = require("cors");
 
-dotenv.config();
+const employeeRoutes = require("./routes/employeeRoutes");
+const bayRoutes = require("./routes/bayRoutes");
+const factoryConfigRoutes=require("./routes/factoryConfigRoutes");
 
-connectDB();
+const app = express();
 
-const app=express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/employees",require("./routes/employeeRoutes"));
-app.use("/api/bays",require(".routes/bayRoutes"));
-app.use("/api/assignment",require(".routes/assignmentRoutes"));
 
-app.get("/",(req,res)=>{
-    res.send("TexTrack backend is running");
-});
+app.use("/api/employees", employeeRoutes);
+app.use("/api/bays", bayRoutes);
+app.use("/api/factory-config",factoryConfigRoutes);
 
-module.exports=app;
+module.exports = app; 

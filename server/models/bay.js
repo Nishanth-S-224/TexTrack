@@ -12,6 +12,7 @@ const baySchema=new mongoose.Schema({
     unique:true,
     default:null
    }
-},{timestamps:true});
+}
+,{timestamps:true,versionKey: false});
 
 module.exports=mongoose.model("Bay",baySchema);
