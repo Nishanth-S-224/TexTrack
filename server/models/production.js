@@ -25,9 +25,13 @@ const productionSchema= new mongoose.Schema({
         required:true,
         min:0,
     },
+    fabricType:{
+        type:String,
+        required:true,
+        trim:true,
+    }
 },
 {timestamps:true}
 );
-productionSchema.index({loomId:1,date:1},{unique:true});
 
 module.exports=mongoose.model("Production",productionSchema);
