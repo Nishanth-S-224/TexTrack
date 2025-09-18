@@ -1,5 +1,5 @@
 const express=require('express');
-const router=express.router();
+const router=express.Router();
 const productionController=require("../controllers/productionController");
 
 router.post("/",productionController.addProduction);

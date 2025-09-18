@@ -1,13 +1,13 @@
 const mongoose=require("mongoose");
 
-const stockSchema=new mongoose.schema({
+const stockSchema=new mongoose.Schema({
     fabricType:{
         type:String,
         required:true,
         unique:true,
         trim:true
     },
-    totalMeters:{
+    metersInHand:{
         type:Number,
         required:true,
         default:0,
@@ -16,3 +16,5 @@ const stockSchema=new mongoose.schema({
 },
 {timestamps:true}
 );
+
+module.exports = mongoose.model("Stock", stockSchema);

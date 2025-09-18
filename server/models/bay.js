@@ -9,8 +9,7 @@ const baySchema=new mongoose.Schema({
    assignedEmployee:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"Employee",
-    unique:true,
-    default:null
+    unique:true
    }
 }
 ,{timestamps:true,versionKey: false});

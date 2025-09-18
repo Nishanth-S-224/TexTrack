@@ -34,7 +34,7 @@ exports.getEmployeeById=async(req,res)=>{
 
 exports.createEmployee=async(req,res)=>{
     try{
-    const employee=req.body;
+    const employee=new Employee(req.body);
       await employee.save();
       res.status(201).json(employee);
     }

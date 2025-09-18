@@ -1,11 +1,24 @@
+
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const path = require("path");
+
 require('dotenv').config();
 
-const app=require('./app');
-const mongoose = require('mongoose');
-const dbUri = process.env.MONGO_URI;
+dotenv.config({ path: "./server/.env" });
 
-mongoose.connect(dbUri)
-  .then(() => console.log('MongoDB connected successfully.'))
-  .catch(err => console.error('MongoDB connection error:', err)); 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+const app = require("./app");
+app.use(express.json());
+
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+  });
